@@ -1,0 +1,179 @@
+import { Request, Response } from 'express'
+import { prisma } from '../database';
+
+export default {
+
+  /**
+   * Cria um post.
+   * @param request ,
+   * @param response
+   * @returns
+   */
+  async createPost(request: Request, response: Response) {
+    try {
+      const { title, content, userId } = request.body;
+
+      const post = await prisma.post.create({
+        data: {
+          title,
+          content,
+          userId
+        }
+      })
+
+      return response.json({
+        error: false,
+        message: 'Post criado com sucesso!',
+        status: 1,
+        post
+      });
+    }
+    catch (error) {
+      return response.json({ message: error.message });
+    }
+  },
+
+  /**
+   * Lista um Post
+   * @param request
+   * @param response
+   * @returns
+   */
+  async listPost(request: Request, response: Response) {
+    try {
+      const { id } = request.params;
+
+      const post = await prisma.post.findUnique({
+        where: {
+          id: Number(id)
+        },
+        select: {
+          title: true,
+          content: true,
+          userId: true
+        },
+      })
+
+      if (!post) {
+        return response.json({
+          error: true,
+          message: 'Error: Post não encontrado!',
+          status: 2
+        });
+      }
+
+      return response.json({
+        error: false,
+        status: 1,
+        post
+      });
+    }
+    catch (error) {
+      return response.json({ message: error.message });
+    }
+  },
+
+  /**
+   * Atualiza um post
+   * @param request
+   * @param response
+   * @returns
+   */
+  async updatePost(request: Request, response: Response) {
+    try {
+      const { id, title, content } = request.body;
+
+      // VERIFICA SE O POST EXISTE
+      const postExists = await prisma.post.findUnique({
+        where: {
+          id: Number(id)
+        },
+        select: {
+          title: true,
+          content: true,
+          userId: true
+        },
+      })
+
+      // SE O POST NÃO EXISTE RETORNA ERROR
+      if (!postExists) {
+        return response.json({
+          error: true,
+          message: 'Error: Post não encontrado!',
+          status: 2
+        });
+      }
+
+      // ATUALIZA O POST
+      const post = await prisma.post.update({
+        where: {
+          id: Number(request.body.id)
+        },
+        data: {
+          title,
+          content
+        }
+      })
+
+      return response.json({
+        error: false,
+        message: 'Post Atualizado com Sucesso!',
+        status: 1,
+        post
+      });
+    }
+    catch (error) {
+      return response.json({ message: error.message });
+    }
+  },
+
+
+  /**
+   * Deleta um post
+   * @param request
+   * @param response
+   * @returns
+   */
+  async deletePost(request: Request, response: Response) {
+    try {
+      const { id } = request.params;
+
+      // VERIFICA SE O POST EXISTE
+      const postExists = await prisma.post.findUnique({
+        where: {
+          id: Number(id)
+        },
+        select: {
+          title: true,
+          content: true,
+          userId: true
+        },
+      })
+
+      // SE O POST NÃO EXISTE RETORNA ERROR
+      if (!postExists) {
+        return response.json({
+          error: true,
+          message: 'Error: Post não encontrado!',
+          status: 2
+        });
+      }
+
+      // ATUALIZA O POST
+      const post = await prisma.post.delete({
+        where: {
+          id: Number(request.params.id)
+        }
+      })
+
+      return response.json({
+        error: false,
+        message: 'Post Deletado com Sucesso!',
+        status: 1
+      });
+    }
+    catch (error) {
+      return response.json({ message: error.message });
+    }
+  },
+}
