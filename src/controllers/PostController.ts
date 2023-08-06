@@ -1,5 +1,9 @@
 import { Request, Response } from 'express'
 import { prisma } from '../database';
+import { CreatePostService } from '../service/CreatePostService';
+import { PostRepository } from '../repositories/PostRepository';
+import { UpdatePostService } from '../service/UpdatePostService';
+import { userInfo } from 'os';
 
 export default {
 
@@ -13,13 +17,8 @@ export default {
     try {
       const { title, content, userId } = request.body;
 
-      const post = await prisma.post.create({
-        data: {
-          title,
-          content,
-          userId
-        }
-      })
+      const createPost = new CreatePostService(new PostRepository());
+      const post = await createPost.execute(title, content, userId);
 
       return response.json({
         error: false,
@@ -105,15 +104,8 @@ export default {
       }
 
       // ATUALIZA O POST
-      const post = await prisma.post.update({
-        where: {
-          id: Number(request.body.id)
-        },
-        data: {
-          title,
-          content
-        }
-      })
+      const updatePost = new UpdatePostService(new PostRepository());
+      const post = updatePost.execute(title, content, id);
 
       return response.json({
         error: false,
@@ -176,4 +168,6 @@ export default {
       return response.json({ message: error.message });
     }
   },
+
+
 }
